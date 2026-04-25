@@ -6,7 +6,7 @@ Built as part of my AWS certification journey (CLF-C02 ✅ → AIF-C01 → SAA-C
 
 ## Live Demo
 
-(Click Here For Live Demo)[https://d3i4clr9tshcxy.cloudfront.net]
+[Click Here For Live Demo](https://d3i4clr9tshcxy.cloudfront.net)
 
 ## Architecture
 
