@@ -79,4 +79,9 @@ aws cloudformation deploy \
 
 ## What I Learned Building This
 
-> Fill this in honestly after you build it — interviewers will ask.
+> Seeing CloudFront and S3 work together live — S3 as the static file store, 
+CloudFront as the global delivery layer — made the CDN concept click in a way 
+that reading about it never did.
+> Lambda's serverless model and CloudFormation's 
+one-command infrastructure deploy showed me what modern cloud engineering 
+actually looks like in practice.
