@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWS Cert Journey </title>
+<style>
+:root {
+  --lavender: #C3AEE8; --lavender-bg: #F2EEFB;
+  --mint: #A8DEC8; --mint-bg: #EEFAF4;
+  --sky: #A8CCE8; --sky-bg: #EEF5FB;
+  --rose: #EAB0C0; --rose-bg: #FCEEF2;
+  --peach: #F0C8A8; --peach-bg: #FEF4EE;
+  --lemon: #E8DC98; --lemon-bg: #FDFAF0;
+  --teal: #88CCAA; --teal-bg: #EEF8F3;
+  --dark: #252535; --mid: #484860; --light: #E0DCF0;
+  --white: #ffffff; --offwhite: #FAFAFA;
+  --sidebar-w: 220px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #F5F4F8; color: var(--dark); display: flex; min-height: 100vh; }
+
+/* ── Sidebar ── */
+#sidebar {
+  width: var(--sidebar-w); background: var(--white); border-right: 1px solid var(--light);
+  position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto;
+  display: flex; flex-direction: column; z-index: 100; }
+#sidebar-header { padding: 20px 16px 12px; border-bottom: 1px solid var(--light); }
+#sidebar-header h2 { font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--mid); margin-bottom: 4px; }
+#sidebar-header p { font-size: 11px; color: #888; }
+.nav-section { padding: 8px 0; border-bottom: 1px solid var(--light); }
+.nav-section-title { font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: #aaa; padding: 6px 16px 4px; }
+.nav-btn { display: block; width: 100%; text-align: left; background: none; border: none;
+  padding: 7px 16px; font-size: 12.5px; color: var(--mid); cursor: pointer;
+  border-radius: 0; transition: background 0.15s; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; }
+.nav-btn:hover { background: var(--offwhite); }
+.nav-btn.active { background: var(--lavender-bg); color: var(--dark); font-weight: 600; }
+.nav-btn .emoji { margin-right: 6px; font-size: 13px; }
+
+/* ── Main ── */
+#main { margin-left: var(--sidebar-w); flex: 1; padding: 32px 40px; max-width: 900px; }
+
+/* ── Tabs / pages ── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── Page header ── */
+.page-header { margin-bottom: 28px; }
+.page-header h1 { font-size: 24px; font-weight: 700; color: var(--dark); }
+.page-header p { font-size: 14px; color: var(--mid); margin-top: 4px; }
+.cert-banner { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.cert-pill { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.cert-done { background: var(--mint-bg); color: #1a6644; }
+.cert-active { background: var(--lavender-bg); color: #5030a0; }
+.cert-planned { background: var(--sky-bg); color: #1a4070; }
+
+/* ── Sections ── */
+.section { background: var(--white); border-radius: 12px; padding: 24px; margin-bottom: 20px;
+  border: 1px solid var(--light); }
+.section h2 { font-size: 15px; font-weight: 700; margin-bottom: 16px; color: var(--dark);
+  display: flex; align-items: center; gap: 8px; }
+.section h3 { font-size: 13px; font-weight: 700; margin: 16px 0 10px; color: var(--mid); }
+
+/* ── Streak grid ── */
+.streak-grid { display: grid; grid-template-columns: auto repeat(5, 1fr) auto;
+  gap: 4px; align-items: center; font-size: 12px; }
+.streak-grid .wk-label { font-weight: 600; color: var(--mid); padding-right: 8px;
+  font-size: 11px; white-space: nowrap; }
+.streak-grid .day-label { text-align: center; font-weight: 600; color: #aaa;
+  font-size: 10px; letter-spacing: 0.04em; }
+.streak-day { width: 32px; height: 32px; border-radius: 8px; border: 1.5px solid var(--light);
+  background: var(--offwhite); cursor: pointer; transition: all 0.15s; display: flex;
+  align-items: center; justify-content: center; font-size: 14px; }
+.streak-day.done { background: var(--mint); border-color: var(--mint); }
+.streak-day:hover { border-color: var(--mid); }
+.streak-count { font-size: 11px; color: var(--mid); padding-left: 8px; font-weight: 600; }
+
+/* ── Practice exam table ── */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: var(--offwhite); padding: 8px 10px; font-weight: 600; text-align: left;
+  border-bottom: 1.5px solid var(--light); color: var(--mid); font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.04em; }
+td { padding: 8px 10px; border-bottom: 1px solid var(--light); vertical-align: middle; }
+td input[type="text"], td input[type="number"] {
+  border: none; background: transparent; font-size: 13px; color: var(--dark);
+  width: 100%; outline: none; font-family: inherit; }
+td input[type="text"]:focus, td input[type="number"]:focus {
+  background: var(--lavender-bg); border-radius: 4px; padding: 2px 4px; }
+tr:last-child td { border-bottom: none; }
+.score-pct { font-weight: 700; color: var(--dark); }
+.score-good { color: #1a6644; }
+.score-bad { color: #a03030; }
+
+/* ── Checkboxes ── */
+.checklist { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 13.5px;
+  color: var(--dark); line-height: 1.5; cursor: pointer; }
+.checklist li.done { color: #aaa; text-decoration: line-through; }
+.cb-box { width: 18px; height: 18px; min-width: 18px; min-height: 18px;
+  border-radius: 5px; border: 2px solid var(--light); background: var(--white);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; cursor: pointer; margin-top: 2px; }
+.cb-box.checked { background: var(--mint); border-color: var(--mint); }
+.cb-box.checked::after { content: '✓'; color: white; font-size: 11px; font-weight: 700; }
+
+/* ── Day journal ── */
+.week-header { background: var(--lavender-bg); border-radius: 10px; padding: 14px 18px;
+  margin-bottom: 16px; border-left: 4px solid var(--lavender); }
+.week-header h2 { font-size: 14px; font-weight: 700; color: var(--dark); margin-bottom: 2px; }
+.week-header p { font-size: 12px; color: var(--mid); }
+.day-card { border: 1px solid var(--light); border-radius: 10px; margin-bottom: 12px;
+  overflow: hidden; }
+.day-card-header { padding: 12px 16px; cursor: pointer; display: flex;
+  align-items: center; justify-content: space-between; background: var(--white);
+  transition: background 0.15s; }
+.day-card-header:hover { background: var(--offwhite); }
+.day-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; padding: 3px 8px; border-radius: 20px; }
+.day-num { font-weight: 700; font-size: 14px; color: var(--dark); }
+.day-title { font-size: 12.5px; color: var(--mid); margin-top: 2px; }
+.day-chevron { font-size: 12px; color: #aaa; transition: transform 0.2s; }
+.day-chevron.open { transform: rotate(180deg); }
+.day-body { display: none; padding: 16px; border-top: 1px solid var(--light);
+  background: var(--white); }
+.day-body.open { display: block; }
+.field-label { font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: #aaa; margin-bottom: 6px; margin-top: 14px; }
+.field-label:first-child { margin-top: 0; }
+textarea { width: 100%; border: 1px solid var(--light); border-radius: 8px;
+  padding: 10px 12px; font-size: 13px; font-family: inherit; color: var(--dark);
+  resize: vertical; min-height: 72px; outline: none; background: var(--white); }
+textarea:focus { border-color: var(--lavender); }
+.day-complete-btn { margin-top: 12px; padding: 6px 16px; background: var(--mint-bg);
+  border: 1.5px solid var(--mint); border-radius: 20px; font-size: 12px;
+  font-weight: 700; color: #1a6644; cursor: pointer; }
+.day-complete-btn.done { background: var(--mint); color: white; }
+
+/* ── Service cards ── */
+.service-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px; }
+.service-card { border: 1px solid var(--light); border-radius: 10px; padding: 16px;
+  background: var(--white); }
+.service-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px;
+  color: var(--dark); }
+.service-field { margin-bottom: 8px; }
+.service-field label { font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: #aaa; display: block; margin-bottom: 3px; }
+.service-field textarea { min-height: 48px; font-size: 12px; }
+.conf-stars { display: flex; gap: 4px; margin-top: 8px; }
+.star { font-size: 18px; cursor: pointer; color: #ddd; transition: color 0.1s; }
+.star.lit { color: var(--lemon); }
+
+/* ── Weak topics ── */
+.weak-table input[type="text"] { border: 1px solid transparent; border-radius: 4px;
+  padding: 4px 6px; width: 100%; }
+.weak-table input:focus { border-color: var(--lavender); background: var(--lavender-bg); }
+.status-sel { font-size: 12px; border: 1px solid var(--light); border-radius: 4px;
+  padding: 3px; background: white; }
+
+/* ── Stats ── */
+.stat-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  margin-bottom: 20px; }
+.stat-card { background: var(--offwhite); border-radius: 10px; padding: 14px 16px; }
+.stat-label { font-size: 11px; color: var(--mid); margin-bottom: 4px; }
+.stat-value { font-size: 22px; font-weight: 700; color: var(--dark); }
+
+/* ── Domain progress ── */
+.domain-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.domain-name { font-size: 12px; width: 220px; flex-shrink: 0; }
+.domain-bar-wrap { flex: 1; height: 8px; background: var(--light); border-radius: 4px; }
+.domain-bar { height: 8px; border-radius: 4px; background: var(--lavender);
+  transition: width 0.4s; }
+.domain-pct { font-size: 12px; font-weight: 700; width: 36px; text-align: right; }
+
+/* ── Misc ── */
+.target-note { font-size: 12px; color: var(--mid); background: var(--mint-bg);
+  border-left: 3px solid var(--mint); padding: 8px 12px; border-radius: 0 6px 6px 0;
+  margin-top: 12px; }
+.save-indicator { font-size: 11px; color: var(--mint); position: fixed;
+  bottom: 16px; right: 24px; background: white; padding: 4px 10px;
+  border-radius: 20px; border: 1px solid var(--mint); opacity: 0;
+  transition: opacity 0.3s; pointer-events: none; }
+.save-indicator.show { opacity: 1; }
+.add-btn { padding: 6px 14px; background: var(--lavender-bg); border: 1.5px solid var(--lavender);
+  border-radius: 20px; font-size: 12px; font-weight: 700; color: var(--dark);
+  cursor: pointer; margin-top: 10px; }
+.remove-btn { background: none; border: none; color: #ccc; cursor: pointer;
+  font-size: 16px; padding: 0 4px; }
+.remove-btn:hover { color: var(--rose); }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen" style="display:flex;position:fixed;inset:0;background:#F5F4F8;
+  align-items:center;justify-content:center;z-index:1000;">
+  <div style="background:white;border-radius:16px;padding:40px;width:360px;
+    border:1px solid var(--light);box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+    <h1 style="font-size:20px;font-weight:700;margin-bottom:4px;">AWS Study Tracker</h1>
+    <p style="font-size:13px;color:var(--mid);margin-bottom:28px;">Your data syncs across all your devices.</p>
+
+    <!-- LOGIN -->
+    <div id="auth-login">
+      <input id="login-email" type="email" placeholder="Email" style="width:100%;margin-bottom:10px;
+        border:1px solid var(--light);border-radius:8px;padding:10px 12px;font-size:14px;font-family:inherit;outline:none;">
+      <input id="login-pass" type="password" placeholder="Password" style="width:100%;margin-bottom:14px;
+        border:1px solid var(--light);border-radius:8px;padding:10px 12px;font-size:14px;font-family:inherit;outline:none;"
+        onkeydown="if(event.key==='Enter')doSignIn()">
+      <button id="login-btn" onclick="doSignIn()" style="width:100%;padding:11px;background:var(--lavender);
+        border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;color:var(--dark);">Sign in</button>
+      <p id="login-err" style="color:#c00;font-size:12px;margin-top:8px;min-height:16px;"></p>
+      <p style="font-size:13px;color:var(--mid);margin-top:16px;text-align:center;">
+        No account? <a href="#" onclick="switchAuthMode('signup');return false;" style="color:var(--dark);font-weight:600;">Create one</a>
+      </p>
+    </div>
+
+    <!-- SIGN UP -->
+    <div id="auth-signup" style="display:none;">
+      <input id="signup-email" type="email" placeholder="Email" style="width:100%;margin-bottom:10px;
+        border:1px solid var(--light);border-radius:8px;padding:10px 12px;font-size:14px;font-family:inherit;outline:none;">
+      <input id="signup-pass" type="password" placeholder="Password (min 8 chars)" style="width:100%;margin-bottom:14px;
+        border:1px solid var(--light);border-radius:8px;padding:10px 12px;font-size:14px;font-family:inherit;outline:none;">
+      <button id="signup-btn" onclick="doSignUp()" style="width:100%;padding:11px;background:var(--mint);
+        border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;color:var(--dark);">Create account</button>
+      <p id="signup-err" style="color:#c00;font-size:12px;margin-top:8px;min-height:16px;"></p>
+      <p style="font-size:13px;color:var(--mid);margin-top:16px;text-align:center;">
+        Have an account? <a href="#" onclick="switchAuthMode('login');return false;" style="color:var(--dark);font-weight:600;">Sign in</a>
+      </p>
+    </div>
+
+    <!-- CONFIRM EMAIL -->
+    <div id="auth-confirm" style="display:none;">
+      <p style="font-size:13px;color:var(--mid);margin-bottom:14px;">Check your email for a verification code.</p>
+      <input id="confirm-code" type="text" placeholder="6-digit code" style="width:100%;margin-bottom:14px;
+        border:1px solid var(--light);border-radius:8px;padding:10px 12px;font-size:14px;font-family:inherit;outline:none;"
+        onkeydown="if(event.key==='Enter')doConfirm()">
+      <button id="confirm-btn" onclick="doConfirm()" style="width:100%;padding:11px;background:var(--sky);
+        border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;color:var(--dark);">Verify email</button>
+      <p id="confirm-err" style="color:#c00;font-size:12px;margin-top:8px;min-height:16px;"></p>
+    </div>
+  </div>
+</div>
+
+<!-- APP WRAPPER -->
+<div id="app" style="display:none;width:100%;">
+<nav id="sidebar">
+  <div id="sidebar-header">
+    <h2>AWS Journey</h2>
+    <p>CLF-C02 ✅ → AIF-C01 Jun 26</p>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">Overview</div>
+    <button class="nav-btn active" onclick="showPage('dashboard')"><span class="emoji">🏠</span>Dashboard</button>
+    <button class="nav-btn" onclick="showPage('stats')"><span class="emoji">📊</span>Scores & Stats</button>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">Study Log</div>
+    <button class="nav-btn" onclick="showPage('week1')"><span class="emoji">📅</span>Week 1 — Foundations</button>
+    <button class="nav-btn" onclick="showPage('week2')"><span class="emoji">📅</span>Week 2 — Gen AI</button>
+    <button class="nav-btn" onclick="showPage('week3')"><span class="emoji">📅</span>Week 3 — AI Services 1</button>
+    <button class="nav-btn" onclick="showPage('week4')"><span class="emoji">📅</span>Week 4 — AI Services 2</button>
+    <button class="nav-btn" onclick="showPage('week5')"><span class="emoji">📅</span>Week 5 — Security + Project</button>
+    <button class="nav-btn" onclick="showPage('week67')"><span class="emoji">📅</span>Weeks 6–7 — Practice Exams</button>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">Reference</div>
+    <button class="nav-btn" onclick="showPage('services')"><span class="emoji">🃏</span>Service Cards</button>
+    <button class="nav-btn" onclick="showPage('glossary')"><span class="emoji">📖</span>Glossary</button>
+    <button class="nav-btn" onclick="showPage('projects')"><span class="emoji">🏗</span>Projects</button>
+    <button class="nav-btn" onclick="showPage('weak')"><span class="emoji">❌</span>Weak Topics</button>
+    <button class="nav-btn" onclick="showPage('jobs')"><span class="emoji">💼</span>Job Applications</button>
+  </div>
+
+  <div style="padding:12px 16px;border-top:1px solid var(--light);margin-top:auto;">
+    <p style="font-size:11px;color:#aaa;margin-bottom:6px;" id="user-email"></p>
+    <button onclick="signOut()" style="font-size:12px;color:var(--mid);background:none;
+      border:1px solid var(--light);border-radius:6px;padding:5px 10px;cursor:pointer;width:100%;">Sign out</button>
+  </div>
+</nav>
+
+<!-- SAVE INDICATOR -->
+<div class="save-indicator" id="saveIndicator">Saved ✓</div>
+
+<!-- MAIN -->
+<main id="main">
+
+<!-- ══════════════ DASHBOARD ══════════════ -->
+<div class="page active" id="page-dashboard">
+  <div class="page-header">
+    <h1>🚀 AWS Certification Journey</h1>
+    <p>Your complete study workspace — everything saves automatically in your browser.</p>
+    <div class="cert-banner">
+      <span class="cert-pill cert-done">CLF-C02 ✅ 805/1000</span>
+      <span class="cert-pill cert-active">AIF-C01 🎯 June 2026</span>
+      <span class="cert-pill cert-planned">SAA-C03 📅 Nov 2026</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>📌 Today's Focus</h2>
+    <div class="field-label">Date & Day</div>
+    <input type="text" id="today-date" placeholder="e.g. Monday 28 April — Day 1 of 40"
+      style="width:100%;border:1px solid var(--light);border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit;outline:none;">
+    <div class="field-label" style="margin-top:14px;">Today's topic</div>
+    <input type="text" id="today-topic" placeholder="e.g. AI vs ML vs Deep Learning"
+      style="width:100%;border:1px solid var(--light);border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit;outline:none;">
+    <div class="field-label" style="margin-top:14px;">Today's Maarek section</div>
+    <input type="text" id="today-maarek" placeholder="e.g. Section 2 — Types of ML"
+      style="width:100%;border:1px solid var(--light);border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit;outline:none;">
+    <div class="field-label" style="margin-top:14px;">Today's project task</div>
+    <input type="text" id="today-project" placeholder="e.g. Create S3 bucket, enable static hosting"
+      style="width:100%;border:1px solid var(--light);border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit;outline:none;">
+    <div class="field-label" style="margin-top:14px;">One thing I want to understand deeply</div>
+    <input type="text" id="today-goal" placeholder="e.g. Why RAG prevents hallucinations"
+      style="width:100%;border:1px solid var(--light);border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit;outline:none;">
+  </div>
+
+  <div class="section">
+    <h2>🔥 Study Streak</h2>
+    <div class="streak-grid">
+      <div class="wk-label"></div>
+      <div class="day-label">MON</div><div class="day-label">TUE</div>
+      <div class="day-label">WED</div><div class="day-label">THU</div>
+      <div class="day-label">FRI</div><div></div>
+    </div>
+    <div id="streak-rows"></div>
+  </div>
+
+  <div class="section">
+    <h2>📈 Practice Exam Average</h2>
+    <div class="stat-cards">
+      <div class="stat-card"><div class="stat-label">Best score</div><div class="stat-value" id="stat-best">—</div></div>
+      <div class="stat-card"><div class="stat-label">Latest score</div><div class="stat-value" id="stat-latest">—</div></div>
+      <div class="stat-card"><div class="stat-label">Exams taken</div><div class="stat-value" id="stat-count">0</div></div>
+    </div>
+    <div class="target-note">🎯 Target: 80%+ on 2 consecutive sets before booking the exam</div>
+  </div>
+</div>
+
+<!-- ══════════════ STATS ══════════════ -->
+<div class="page" id="page-stats">
+  <div class="page-header"><h1>📊 Scores & Stats</h1></div>
+  <div class="section">
+    <h2>Practice Exam History</h2>
+    <table id="exam-table">
+      <thead><tr><th>#</th><th>Date</th><th>Source</th><th>Score /65</th><th>%</th><th>Weakest Domain</th></tr></thead>
+      <tbody id="exam-tbody"></tbody>
+    </table>
+    <button class="add-btn" onclick="addExamRow()">+ Add exam result</button>
+  </div>
+  <div class="section">
+    <h2>Domain Accuracy</h2>
+    <p style="font-size:12px;color:var(--mid);margin-bottom:16px;">Enter your % correct per domain after each exam — update as you improve.</p>
+    <div id="domain-rows"></div>
+  </div>
+</div>
+
+<!-- ══════════════ WEEK 1 ══════════════ -->
+<div class="page" id="page-week1">
+  <div class="page-header"><h1>📅 Week 1 — Foundations + Setup</h1>
+    <p>April 28 – May 2, 2026 · Project: Static Portfolio Website (S3 + CloudFront)</p></div>
+  <div id="week1-days"></div>
+</div>
+
+<!-- ══════════════ WEEK 2 ══════════════ -->
+<div class="page" id="page-week2">
+  <div class="page-header"><h1>📅 Week 2 — Generative AI</h1>
+    <p>May 5–9, 2026 · Project: Serverless Contact Form (Lambda + API GW + SES)</p></div>
+  <div id="week2-days"></div>
+</div>
+
+<!-- ══════════════ WEEK 3 ══════════════ -->
+<div class="page" id="page-week3">
+  <div class="page-header"><h1>📅 Week 3 — AWS AI Services Part 1</h1>
+    <p>May 12–16, 2026 · Project: Custom VPC Architecture</p></div>
+  <div id="week3-days"></div>
+</div>
+
+<!-- ══════════════ WEEK 4 ══════════════ -->
+<div class="page" id="page-week4">
+  <div class="page-header"><h1>📅 Week 4 — AWS AI Services Part 2 + Responsible AI</h1>
+    <p>May 19–23, 2026 · Project: Auto-Scaling Web App</p></div>
+  <div id="week4-days"></div>
+</div>
+
+<!-- ══════════════ WEEK 5 ══════════════ -->
+<div class="page" id="page-week5">
+  <div class="page-header"><h1>📅 Week 5 — Security + Capstone</h1>
+    <p>May 26–30, 2026 · Project: Bedrock RAG Chatbot</p></div>
+  <div id="week5-days"></div>
+</div>
+
+<!-- ══════════════ WEEKS 6–7 ══════════════ -->
+<div class="page" id="page-week67">
+  <div class="page-header"><h1>📅 Weeks 6–7 — Practice Exams</h1>
+    <p>June 2–13, 2026 · Target: 80%+ on 2 consecutive sets</p></div>
+  <div id="week67-days"></div>
+</div>
+
+<!-- ══════════════ SERVICE CARDS ══════════════ -->
+<div class="page" id="page-services">
+  <div class="page-header"><h1>🃏 AWS Service Cards</h1>
+    <p>Fill in each card as you study the service. Update confidence stars over time.</p></div>
+  <div class="service-grid" id="service-grid"></div>
+</div>
+
+<!-- ══════════════ GLOSSARY ══════════════ -->
+<div class="page" id="page-glossary">
+  <div class="page-header"><h1>📖 Glossary</h1></div>
+  <div class="section">
+    <table id="glossary-table">
+      <thead><tr><th>Term</th><th>Definition</th><th>Category</th><th>Conf</th><th></th></tr></thead>
+      <tbody id="glossary-tbody"></tbody>
+    </table>
+    <button class="add-btn" onclick="addGlossaryRow()">+ Add term</button>
+  </div>
+</div>
+
+<!-- ══════════════ PROJECTS ══════════════ -->
+<div class="page" id="page-projects">
+  <div class="page-header"><h1>🏗 Projects Tracker</h1></div>
+  <div id="projects-content"></div>
+</div>
+
+<!-- ══════════════ WEAK TOPICS ══════════════ -->
+<div class="page" id="page-weak">
+  <div class="page-header"><h1>❌ Weak Topics</h1>
+    <p>Log every wrong answer from practice exams. Review before every study session.</p></div>
+  <div class="section">
+    <table class="weak-table">
+      <thead><tr><th>Topic</th><th>Service</th><th>Source</th><th>Date</th><th>× Wrong</th><th>Status</th><th></th></tr></thead>
+      <tbody id="weak-tbody"></tbody>
+    </table>
+    <button class="add-btn" onclick="addWeakRow()">+ Add wrong answer</button>
+  </div>
+</div>
+
+<!-- ══════════════ JOBS ══════════════ -->
+<div class="page" id="page-jobs">
+  <div class="page-header"><h1>💼 Job Applications</h1>
+    <p>CLF-C02 at 805 already qualifies you. Start applying now — don't wait.</p></div>
+  <div class="section">
+    <table>
+      <thead><tr><th>Company</th><th>Role</th><th>Applied</th><th>Platform</th><th>Status</th><th>Follow-up</th><th></th></tr></thead>
+      <tbody id="jobs-tbody"></tbody>
+    </table>
+    <button class="add-btn" onclick="addJobRow()">+ Add application</button>
+  </div>
+  <div class="section">
+    <h2>LinkedIn Checklist</h2>
+    <ul class="checklist" id="linkedin-list"></ul>
+  </div>
+</div>
+
+</main>
+</div><!-- /app -->
+
+
+<script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@6/dist/amazon-cognito-identity.min.js"></script>
+<script>
+// ── CONFIG — fill these in after CloudFormation deploy ──────────────────────
+const CONFIG = {
+  apiUrl:  "https://buvd0ht5g1.execute-api.us-east-1.amazonaws.com/prod",
+  userPoolId: "us-east-1_wYAqdEuXM",
+  clientId: "6i0tt1sodl3iig70hihphp33l6",
+  region: 'us-east-1',
+}; 
+
+// ── Auth state ───────────────────────────────────────────────────────────────
+let _currentUser = null;
+let _idToken = null;
+let _localCache = {};  // mirrors DynamoDB — reduces API calls
+let _saveQueue = {};   // keys pending save
+let _saveTimer = null;
+
+const userPool = new AmazonCognitoIdentity.CognitoUserPool({
+  UserPoolId: CONFIG.userPoolId,
+  ClientId: CONFIG.clientId,
+});
+
+// ── Storage layer — reads cache, writes queue + DynamoDB ────────────────────
+const S = {
+  get(k) {
+    // 1. Check in-memory cache (populated on login)
+    if (_localCache[k] !== undefined) return _localCache[k];
+    // 2. Fallback to localStorage (offline / first load)
+    try { return JSON.parse(localStorage.getItem('aws_' + k)); } catch(e) { return null; }
+  },
+  set(k, v) {
+    // Write locally immediately (fast UI)
+    _localCache[k] = v;
+    localStorage.setItem('aws_' + k, JSON.stringify(v));
+    showSaved('saving…');
+    // Queue for DynamoDB save (debounced — avoids hammering API on every keystroke)
+    _saveQueue[k] = v;
+    clearTimeout(_saveTimer);
+    _saveTimer = setTimeout(flushSaveQueue, 800);
+  }
+};
+
+async function flushSaveQueue() {
+  if (!_idToken || Object.keys(_saveQueue).length === 0) return;
+  const items = Object.entries(_saveQueue).map(([key, value]) => ({ key, value }));
+  _saveQueue = {};
+  try {
+    await apiCall('POST', '/data', { items });
+    showSaved('saved ✓');
+  } catch(e) {
+    showSaved('offline — saved locally');
+  }
+}
+
+async function apiCall(method, path, body) {
+  if (!_idToken) throw new Error('Not authenticated');
+  const res = await fetch(CONFIG.apiUrl + path, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': _idToken,
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) throw new Error(`API ${res.status}`);
+  return res.json();
+}
+
+async function loadAllFromDynamo() {
+  try {
+    const result = await apiCall('GET', '/data');
+    _localCache = result.data || {};
+    // Also sync to localStorage for offline use
+    Object.entries(_localCache).forEach(([k, v]) => {
+      localStorage.setItem('aws_' + k, JSON.stringify(v));
+    });
+  } catch(e) {
+    console.warn('Could not load from DynamoDB, using localStorage:', e.message);
+    // Fall through — S.get() will use localStorage
+  }
+}
+
+// ── Cognito Auth ─────────────────────────────────────────────────────────────
+function getCurrentSession() {
+  return new Promise((resolve, reject) => {
+    const user = userPool.getCurrentUser();
+    if (!user) return reject('No user');
+    user.getSession((err, session) => {
+      if (err || !session.isValid()) return reject(err || 'Invalid session');
+      _currentUser = user;
+      _idToken = session.getIdToken().getJwtToken();
+      resolve(session);
+    });
+  });
+}
+
+function signUp(email, password) {
+  return new Promise((resolve, reject) => {
+    const attrs = [new AmazonCognitoIdentity.CognitoUserAttribute({ Name: 'email', Value: email })];
+    userPool.signUp(email, password, attrs, null, (err, result) => {
+      if (err) return reject(err.message);
+      resolve(result.user);
+    });
+  });
+}
+
+function confirmSignUp(email, code) {
+  return new Promise((resolve, reject) => {
+    const user = new AmazonCognitoIdentity.CognitoUser({ Username: email, Pool: userPool });
+    user.confirmRegistration(code, true, (err, result) => {
+      if (err) return reject(err.message);
+      resolve(result);
+    });
+  });
+}
+
+function signIn(email, password) {
+  return new Promise((resolve, reject) => {
+    const authDetails = new AmazonCognitoIdentity.AuthenticationDetails({ Username: email, Password: password });
+    const user = new AmazonCognitoIdentity.CognitoUser({ Username: email, Pool: userPool });
+    user.authenticateUser(authDetails, {
+      onSuccess: async (session) => {
+        _currentUser = user;
+        _idToken = session.getIdToken().getJwtToken();
+        await loadAllFromDynamo();
+        resolve(session);
+      },
+      onFailure: (err) => reject(err.message),
+    });
+  });
+}
+
+function signOut() {
+  if (_currentUser) _currentUser.signOut();
+  _idToken = null;
+  _currentUser = null;
+  _localCache = {};
+  showAuthScreen();
+}
+
+// ── Auth UI ───────────────────────────────────────────────────────────────────
+function showAuthScreen(mode) {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  if (mode) switchAuthMode(mode);
+}
+function hideAuthScreen() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+}
+
+function switchAuthMode(mode) {
+  document.getElementById('auth-login').style.display = mode === 'login' ? 'block' : 'none';
+  document.getElementById('auth-signup').style.display = mode === 'signup' ? 'block' : 'none';
+  document.getElementById('auth-confirm').style.display = mode === 'confirm' ? 'block' : 'none';
+}
+
+let _pendingEmail = '';
+
+async function doSignIn() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const btn = document.getElementById('login-btn');
+  const err = document.getElementById('login-err');
+  btn.textContent = 'Signing in…'; btn.disabled = true; err.textContent = '';
+  try {
+    await signIn(email, pass);
+    hideAuthScreen();
+    initApp();
+  } catch(e) {
+    err.textContent = e;
+    btn.textContent = 'Sign in'; btn.disabled = false;
+  }
+}
+
+async function doSignUp() {
+  const email = document.getElementById('signup-email').value.trim();
+  const pass = document.getElementById('signup-pass').value;
+  const btn = document.getElementById('signup-btn');
+  const err = document.getElementById('signup-err');
+  btn.textContent = 'Creating account…'; btn.disabled = true; err.textContent = '';
+  try {
+    await signUp(email, pass);
+    _pendingEmail = email;
+    switchAuthMode('confirm');
+  } catch(e) {
+    err.textContent = e;
+    btn.textContent = 'Create account'; btn.disabled = false;
+  }
+}
+
+async function doConfirm() {
+  const code = document.getElementById('confirm-code').value.trim();
+  const btn = document.getElementById('confirm-btn');
+  const err = document.getElementById('confirm-err');
+  btn.textContent = 'Verifying…'; btn.disabled = true; err.textContent = '';
+  try {
+    await confirmSignUp(_pendingEmail, code);
+    switchAuthMode('login');
+    document.getElementById('login-email').value = _pendingEmail;
+    document.getElementById('login-err').textContent = 'Account confirmed! Sign in below.';
+  } catch(e) {
+    err.textContent = e;
+    btn.textContent = 'Verify'; btn.disabled = false;
+  }
+}
+
+
+function showSaved(){
+  const el = document.getElementById('saveIndicator');
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>el.classList.remove('show'), 1500);
+}
+
+function autoSave(key, el, event='input'){
+  el.addEventListener(event, ()=>S.set(key, el.value));
+  const saved = S.get(key);
+  if(saved !== null) el.value = saved;
+}
+
+// ── Navigation ───────────────────────────────────────────────────────────────
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>{
+    if(b.getAttribute('onclick')===`showPage('${id}')`) b.classList.add('active');
+  });
+  window.scrollTo(0,0);
+}
+
+// ── Checkbox helper ──────────────────────────────────────────────────────────
+function makeChecklist(items, storageKey){
+  const saved = S.get(storageKey) || {};
+  const ul = document.createElement('ul');
+  ul.className = 'checklist';
+  items.forEach((text, i)=>{
+    const li = document.createElement('li');
+    const box = document.createElement('div');
+    box.className = 'cb-box' + (saved[i] ? ' checked' : '');
+    const span = document.createElement('span');
+    span.textContent = text;
+    if(saved[i]) li.classList.add('done');
+    li.appendChild(box);
+    li.appendChild(span);
+    li.onclick = ()=>{
+      const isChecked = box.classList.toggle('checked');
+      li.classList.toggle('done', isChecked);
+      saved[i] = isChecked;
+      S.set(storageKey, saved);
+    };
+    ul.appendChild(li);
+  });
+  return ul;
+}
+
+// ── Streak ────────────────────────────────────────────────────────────────────
+const WEEKS = [
+  {label:'Wk 1', date:'Apr 28'},
+  {label:'Wk 2', date:'May 5'},
+  {label:'Wk 3', date:'May 12'},
+  {label:'Wk 4', date:'May 19'},
+  {label:'Wk 5', date:'May 26'},
+  {label:'Wk 6', date:'Jun 2'},
+  {label:'Wk 7', date:'Jun 9'},
+];
+
+function buildStreak(){
+  const streak = S.get('streak') || {};
+  const container = document.getElementById('streak-rows');
+  WEEKS.forEach((wk, wi)=>{
+    const row = document.createElement('div');
+    row.className = 'streak-grid';
+    row.style.marginTop = '6px';
+    const wkLabel = document.createElement('div');
+    wkLabel.className = 'wk-label';
+    wkLabel.textContent = wk.label;
+    row.appendChild(wkLabel);
+    let done = 0;
+    for(let d=0;d<5;d++){
+      const key = `${wi}-${d}`;
+      const day = document.createElement('div');
+      day.className = 'streak-day' + (streak[key] ? ' done' : '');
+      day.title = ['Mon','Tue','Wed','Thu','Fri'][d];
+      if(streak[key]) done++;
+      day.onclick = ()=>{
+        streak[key] = !streak[key];
+        day.classList.toggle('done', streak[key]);
+        if(streak[key]) done++; else done--;
+        cnt.textContent = `${Math.max(0,done)}/5`;
+        S.set('streak', streak);
+      };
+      row.appendChild(day);
+    }
+    const cnt = document.createElement('div');
+    cnt.className = 'streak-count';
+    cnt.textContent = `${done}/5`;
+    row.appendChild(cnt);
+    container.appendChild(row);
+  });
+}
+
+// ── Exam table ───────────────────────────────────────────────────────────────
+function buildExamTable(){
+  const rows = S.get('exams') || [
+    {date:'',src:'Tutorial Dojo Set 1',score:'',weak:''},
+    {date:'',src:'Maarek Exam 1',score:'',weak:''},
+    {date:'',src:'Tutorial Dojo Set 2',score:'',weak:''},
+    {date:'',src:'Maarek Exam 2',score:'',weak:''},
+  ];
+  rows.forEach((r,i)=>renderExamRow(r,i));
+  updateStats();
+}
+
+function renderExamRow(data, idx){
+  const tbody = document.getElementById('exam-tbody');
+  const tr = document.createElement('tr');
+  tr.dataset.idx = idx;
+  const pct = data.score ? Math.round((+data.score/65)*100) : null;
+  const pctClass = pct >= 80 ? 'score-good' : pct ? 'score-bad' : '';
+  tr.innerHTML = `
+    <td>${idx+1}</td>
+    <td><input type="text" value="${data.date||''}" placeholder="dd/mm" data-field="date"></td>
+    <td><input type="text" value="${data.src||''}" placeholder="Source" data-field="src"></td>
+    <td><input type="number" value="${data.score||''}" placeholder="e.g. 52" min="0" max="65" data-field="score" style="width:60px"></td>
+    <td class="score-pct ${pctClass}">${pct !== null ? pct+'%' : '—'}</td>
+    <td><input type="text" value="${data.weak||''}" placeholder="e.g. Domain 3" data-field="weak"></td>`;
+  tr.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const rows = S.get('exams') || [];
+      if(!rows[idx]) rows[idx] = {};
+      rows[idx][inp.dataset.field] = inp.value;
+      S.set('exams', rows);
+      if(inp.dataset.field === 'score'){
+        const p = inp.value ? Math.round((+inp.value/65)*100) : null;
+        const pctEl = tr.querySelector('.score-pct');
+        pctEl.textContent = p !== null ? p+'%' : '—';
+        pctEl.className = 'score-pct ' + (p >= 80 ? 'score-good' : p ? 'score-bad' : '');
+        updateStats();
+      }
+    });
+  });
+  tbody.appendChild(tr);
+}
+
+function addExamRow(){
+  const rows = S.get('exams') || [];
+  rows.push({date:'',src:'',score:'',weak:''});
+  S.set('exams', rows);
+  renderExamRow(rows[rows.length-1], rows.length-1);
+}
+
+function updateStats(){
+  const rows = S.get('exams') || [];
+  const scores = rows.map(r=>+r.score).filter(s=>s>0);
+  const pcts = scores.map(s=>Math.round((s/65)*100));
+  document.getElementById('stat-best').textContent = pcts.length ? Math.max(...pcts)+'%' : '—';
+  document.getElementById('stat-latest').textContent = pcts.length ? pcts[pcts.length-1]+'%' : '—';
+  document.getElementById('stat-count').textContent = pcts.length;
+}
+
+// ── Domain rows ──────────────────────────────────────────────────────────────
+const DOMAINS = [
+  {name:'D1: Fundamentals of AI/ML', weight:'20%'},
+  {name:'D2: Fundamentals of Gen AI', weight:'24%'},
+  {name:'D3: Applications of FMs', weight:'28%'},
+  {name:'D4: Responsible AI', weight:'14%'},
+  {name:'D5: Security & Governance', weight:'14%'},
+];
+function buildDomainRows(){
+  const saved = S.get('domains') || {};
+  const container = document.getElementById('domain-rows');
+  DOMAINS.forEach((d,i)=>{
+    const pct = saved[i] || 0;
+    const wrap = document.createElement('div');
+    wrap.className = 'domain-row';
+    wrap.innerHTML = `
+      <div class="domain-name"><strong>${d.name}</strong> <span style="color:#aaa;font-size:11px">${d.weight}</span></div>
+      <div class="domain-bar-wrap"><div class="domain-bar" style="width:${pct}%"></div></div>
+      <input type="number" min="0" max="100" value="${pct||''}" placeholder="%" style="width:52px;border:1px solid var(--light);border-radius:6px;padding:4px 6px;font-size:12px;text-align:center;">
+      <div class="domain-pct" style="color:${pct>=80?'#1a6644':pct?'#a03030':'#aaa'}">${pct ? pct+'%' : '—'}</div>`;
+    const inp = wrap.querySelector('input');
+    inp.addEventListener('input', ()=>{
+      const v = Math.min(100, Math.max(0, +inp.value || 0));
+      saved[i] = v;
+      S.set('domains', saved);
+      wrap.querySelector('.domain-bar').style.width = v+'%';
+      wrap.querySelector('.domain-pct').textContent = v ? v+'%' : '—';
+      wrap.querySelector('.domain-pct').style.color = v>=80?'#1a6644':v?'#a03030':'#aaa';
+    });
+    container.appendChild(wrap);
+  });
+}
+
+// ── Day cards ────────────────────────────────────────────────────────────────
+const WEEK_DATA = {
+  week1: [
+    {n:1, date:'Mon 28 Apr', color:'var(--lavender)', bg:'var(--lavender-bg)',
+     title:'Environment Setup',
+     checks:['Create AWS Free Tier account → aws.amazon.com/free','Create GitHub account (use real name as username)','Update LinkedIn: add CLF-C02 certification + Credly badge','Install VS Code + AWS Toolkit extension','Enable MFA on AWS root account','Enrol in AWS Skill Builder AIF-C01 learning plan'],
+     notes:['Observations about the AWS Console (3 things)','AWS Account ID (write it here, you will need it)']},
+    {n:2, date:'Tue 29 Apr', color:'var(--lavender)', bg:'var(--lavender-bg)',
+     title:'AI vs ML vs Deep Learning',
+     checks:['Maarek Udemy: Section 1 — Introduction to AI/ML (all lessons)','Taulli O\'Reilly: Chapter 1 (read + highlight)','AWS Skill Builder: Module 1 — Fundamentals of AI'],
+     notes:['AI in my own words (no jargon)','ML in my own words','Difference between AI and ML','Key insight from today']},
+    {n:3, date:'Wed 30 Apr', color:'var(--lavender)', bg:'var(--lavender-bg)',
+     title:'3 Types of Machine Learning',
+     checks:['Maarek Udemy: Section 2 — Types of ML','Taulli: ML Types chapter','Can name all 3 types without notes','Can give a real example for each type'],
+     notes:['Supervised learning — my example','Unsupervised learning — my example','Reinforcement learning — my example']},
+    {n:4, date:'Thu 1 May', color:'var(--lavender)', bg:'var(--lavender-bg)',
+     title:'ML Lifecycle + Data Concepts',
+     checks:['Maarek: ML Lifecycle section','Taulli: Data chapter','7 lifecycle stages memorised in order','Training vs Inference difference is clear'],
+     notes:['The 7 ML lifecycle stages (write from memory)','Key difference between training and inference']},
+    {n:5, date:'Fri 2 May', color:'var(--lavender)', bg:'var(--lavender-bg)',
+     title:'Model Evaluation + Project 1 Start',
+     checks:['Maarek: Model Evaluation section','Taulli: Evaluation chapter','S3 bucket created + static hosting enabled','index.html uploaded to S3','S3 website URL loads in browser'],
+     notes:['Precision vs Recall — when to use each (in my own words)','Overfitting — 3 prevention techniques I can name','Week 1 self-test score (out of 8 concepts)']},
+  ],
+  week2: [
+    {n:6, date:'Mon 5 May', color:'var(--mint)', bg:'var(--mint-bg)',
+     title:'Generative AI + LLMs',
+     checks:['Maarek: Generative AI section','Taulli: Generative AI chapter','AWS Skill Builder: Gen AI module','Can explain hallucination + 2 ways to reduce it'],
+     notes:['Generative AI vs traditional ML (1 sentence each)','LLM in my own words','Token maths: "Hello world" ≈ how many tokens?']},
+    {n:7, date:'Tue 6 May', color:'var(--mint)', bg:'var(--mint-bg)',
+     title:'Embeddings + RAG',
+     checks:['Maarek: RAG + Embeddings section','Taulli: RAG chapter','RAG flow can be drawn from memory','Know what a vector database is'],
+     notes:['Draw the RAG flow from memory (describe each step)','Why RAG beats a plain LLM — 3 reasons','AWS services for RAG (list them)']},
+    {n:8, date:'Wed 7 May', color:'var(--mint)', bg:'var(--mint-bg)',
+     title:'Prompt Engineering',
+     checks:['Maarek: Prompt Engineering section','Taulli: Prompting chapter','Can explain all 4 techniques with examples','Zero/few-shot/CoT/system prompt — know when to use each'],
+     notes:['My zero-shot prompt example','My chain-of-thought prompt example','Exam decision tree: complex reasoning = ?']},
+    {n:9, date:'Thu 8 May', color:'var(--mint)', bg:'var(--mint-bg)',
+     title:'Fine-tuning + Model Concepts',
+     checks:['Maarek: Fine-tuning section','Taulli: Fine-tuning chapter','Fine-tuning vs RAG distinction is clear','Lambda function created + SES email verified (Project 2)'],
+     notes:['Fine-tuning vs RAG: when to choose which','Temperature — what happens at 0.0 vs 1.0']},
+    {n:10, date:'Fri 9 May', color:'var(--mint)', bg:'var(--mint-bg)',
+     title:'Gen AI Review + Project 2 Complete',
+     checks:['Review all Maarek Week 2 sections','API Gateway → Lambda → SES working end-to-end','Contact form HTML with JavaScript fetch complete','Pushed to GitHub: aws-serverless-contact-form'],
+     notes:['Week 2 self-quiz score (out of 10 concepts)','Things still fuzzy — list them']},
+  ],
+  week3: [
+    {n:11, date:'Mon 12 May', color:'var(--sky)', bg:'var(--sky-bg)',
+     title:'Amazon Bedrock Deep Dive',
+     checks:['Maarek: Amazon Bedrock section','Taulli: Bedrock chapter','Explored Bedrock model catalog in console','Bedrock = USE existing models (not build) is locked in'],
+     notes:['Bedrock vs SageMaker in one sentence each','Bedrock Agents — what they can do','Models available in Bedrock console (list what you saw)']},
+    {n:12, date:'Tue 13 May', color:'var(--sky)', bg:'var(--sky-bg)',
+     title:'Rekognition + Textract',
+     checks:['Maarek: Rekognition section','Maarek: Textract section','Taulli: Computer Vision chapter','Tried Rekognition demo in console','VPC created (10.0.0.0/16)'],
+     notes:['Rekognition — list 5 capabilities','Textract vs Rekognition — key difference in one line']},
+    {n:13, date:'Wed 14 May', color:'var(--sky)', bg:'var(--sky-bg)',
+     title:'Comprehend + Translate',
+     checks:['Maarek: Comprehend section','Maarek: Translate section','Taulli: NLP chapter','Public + private subnets created','IGW and NAT Gateway created'],
+     notes:['Comprehend — list 5 capabilities','Comprehend vs Translate — one-line difference']},
+    {n:14, date:'Thu 15 May', color:'var(--sky)', bg:'var(--sky-bg)',
+     title:'Transcribe + Polly + Lex',
+     checks:['Maarek: Transcribe + Polly sections','Maarek: Lex section','Taulli: Voice AI chapter','Transcribe → Polly directions locked in'],
+     notes:['Transcribe vs Polly — direction of data flow (fill from memory)','Lex vs Bedrock for chatbots — when to use each']},
+    {n:15, date:'Fri 16 May', color:'var(--sky)', bg:'var(--sky-bg)',
+     title:'Services Review + Project 3 Complete',
+     checks:['Review all AI service sections','5 Tutorial Dojo questions on AI services','EC2 bastion + private EC2 launched','SSH chain tested: laptop → bastion → private ✓','Pushed to GitHub: aws-vpc-architecture'],
+     notes:['Which service? Fill the grid from memory (score out of 7)']},
+  ],
+  week4: [
+    {n:16, date:'Mon 19 May', color:'var(--rose)', bg:'var(--rose-bg)',
+     title:'Kendra + Personalize + Forecast',
+     checks:['Maarek: Kendra section','Maarek: Personalize section','Maarek: Forecast section','Taulli: Specialised services chapter'],
+     notes:['Kendra vs Bedrock Knowledge Bases — one-line difference','Exam scenario: predict inventory demand → which service?','Exam scenario: recommend content to users → which service?']},
+    {n:17, date:'Tue 20 May', color:'var(--rose)', bg:'var(--rose-bg)',
+     title:'Amazon Q + SageMaker Deep Dive',
+     checks:['Maarek: Amazon Q section','Maarek: SageMaker section','Taulli: SageMaker chapter','Q Business vs Q Developer vs Q in Connect — all 3 clear','ALB + Target Group created (Project 4)'],
+     notes:['Amazon Q variants — fill in from memory (3 rows)','SageMaker sub-services — list 6 and their purpose']},
+    {n:18, date:'Wed 21 May', color:'var(--rose)', bg:'var(--rose-bg)',
+     title:'Responsible AI — 6 Pillars',
+     checks:['Maarek: Responsible AI section','Taulli: Responsible AI chapter','All 6 pillars memorised with AWS tool','3 bias types — can explain each with example'],
+     notes:['6 pillars from memory (no notes): FER PTG','Which AWS tool detects bias? Which detects drift?']},
+    {n:19, date:'Thu 22 May', color:'var(--rose)', bg:'var(--rose-bg)',
+     title:'Human Oversight + A2I + Governance',
+     checks:['Maarek: A2I section','Taulli: Governance chapter','Amazon A2I flow understood','SageMaker Model Monitor purpose clear','ASG scaling policy created (Project 4)'],
+     notes:['A2I flow — describe in your own words','Model drift types: data drift vs concept drift']},
+    {n:20, date:'Fri 23 May', color:'var(--rose)', bg:'var(--rose-bg)',
+     title:'Responsible AI Review + Project 4',
+     checks:['Review all Responsible AI sections','RDS MySQL instance created','EC2 connected to RDS','Stress test run — ASG scales out ✓','Pushed to GitHub: aws-auto-scaling-app'],
+     notes:['Responsible AI exam flashcard — fill all 6 tools from memory','Lessons from Project 4 build']},
+  ],
+  week5: [
+    {n:21, date:'Mon 26 May', color:'var(--peach)', bg:'var(--peach-bg)',
+     title:'Security + Shared Responsibility',
+     checks:['Maarek: Security section','Taulli: Security chapter','Shared Responsibility Model — can split AWS vs Customer','Encryption at rest vs in transit — difference clear'],
+     notes:['AWS vs Customer responsibility — fill the split from memory','5 key security services: IAM, KMS, Macie, CloudTrail, VPC Endpoints — purpose of each']},
+    {n:22, date:'Tue 27 May', color:'var(--peach)', bg:'var(--peach-bg)',
+     title:'Project 5 — Bedrock Setup',
+     checks:['Bedrock model access enabled (Claude + Titan Embeddings)','S3 bucket created for documents','Documents uploaded to S3','Knowledge Base created','Sync triggered and complete ✓'],
+     notes:['First question I tested the Knowledge Base with','Response quality (1–5) and why']},
+    {n:23, date:'Wed 28 May', color:'var(--peach)', bg:'var(--peach-bg)',
+     title:'Chatbot UI + Compliance',
+     checks:['Maarek: Compliance section','chatbot.py written (Streamlit + boto3 Bedrock KB)','env.example created','.gitignore set up (.env excluded)','End-to-end test: question → KB → answer ✓'],
+     notes:['GDPR / HIPAA / SOC2 — one line each','Bedrock Guardrails — what can they block?']},
+    {n:24, date:'Thu 29 May', color:'var(--peach)', bg:'var(--peach-bg)',
+     title:'Full Service Review',
+     checks:['Complete AWS AI service map filled from memory','Score at least 12/14 services without notes','Review any gaps in Maarek sections'],
+     notes:['Services I still confused — list them','Score on service review: /14']},
+    {n:25, date:'Fri 30 May', color:'var(--peach)', bg:'var(--peach-bg)',
+     title:'Project 5 Complete + Full Review',
+     checks:['chatbot.py fully working end-to-end ✓','requirements.txt created','README.md written (architecture + run instructions)','architecture.png created in draw.io','Pushed to GitHub: aws-bedrock-rag-chatbot (no .env!)','All 5 GitHub repos public with full READMEs ✓'],
+     notes:['What I learned building the RAG chatbot','My biggest takeaway from the 5 weeks of projects']},
+  ],
+  week67: [
+    {n:26, date:'Mon 2 Jun', color:'var(--lemon)', bg:'var(--lemon-bg)',
+     title:'Tutorial Dojo Set 1 — Baseline',
+     checks:['Tutorial Dojo Set 1 complete (65q, 90 min, timed)','All wrong answers logged in Weak Topics ✓'],
+     notes:['Score: /65 = %','Strongest domain','Weakest domain','Top 3 wrong answers I need to review']},
+    {n:27, date:'Tue 3 Jun', color:'var(--lemon)', bg:'var(--lemon-bg)',
+     title:'Weak Area Drill (from Set 1)',
+     checks:['Re-watched Maarek sections for each weak area','Re-read Taulli chapters for weak areas','10 targeted Tutorial Dojo questions on weak topics'],
+     notes:['Concepts drilled today','Confidence before → after on each topic']},
+    {n:28, date:'Wed 4 Jun', color:'var(--lemon)', bg:'var(--lemon-bg)',
+     title:'Maarek Practice Exam 1',
+     checks:['Maarek Exam 1 complete (timed)','Wrong answers added to Weak Topics ✓'],
+     notes:['Score: /65 = %','New gaps identified']},
+    {n:29, date:'Thu 5 Jun', color:'var(--lemon)', bg:'var(--lemon-bg)',
+     title:'Drill + Tutorial Dojo Set 2',
+     checks:['Morning: drilled weak areas from Maarek Exam 1','Tutorial Dojo Set 2 complete (timed)'],
+     notes:['Set 2 score: /65 = %','Trend vs Set 1: better / worse / same']},
+    {n:30, date:'Fri 6 Jun', color:'var(--lemon)', bg:'var(--lemon-bg)',
+     title:'Maarek Practice Exam 2',
+     checks:['Maarek Exam 2 complete (timed)','Weekend plan: review all Weak Topics, rest'],
+     notes:['Score: /65 = %','Strongest domain','Service I keep confusing']},
+    {n:31, date:'Mon 9 Jun', color:'var(--teal)', bg:'var(--teal-bg)',
+     title:'Tutorial Dojo Set 3',
+     checks:['Tutorial Dojo Set 3 complete (timed)'],
+     notes:['Score: /65 = %','Running average (Set 1+2+3 ÷ 3): %','At 80%+ on 2 consecutive? Yes → book exam / No → continue']},
+    {n:32, date:'Tue 10 Jun', color:'var(--teal)', bg:'var(--teal-bg)',
+     title:'Final Weak Area Drill',
+     checks:['Top 3 weak areas reviewed deeply','30 focused questions (10 per topic)'],
+     notes:['3 weakest topics','Score on focused questions: /30']},
+    {n:33, date:'Wed 11 Jun', color:'var(--teal)', bg:'var(--teal-bg)',
+     title:'Maarek Practice Exam 3',
+     checks:['Maarek Exam 3 complete (timed)','2-in-a-row check: hit 80%+ on 2 consecutive?'],
+     notes:['Score: /65 = %']},
+    {n:34, date:'Thu 12 Jun', color:'var(--teal)', bg:'var(--teal-bg)',
+     title:'Tutorial Dojo Set 4',
+     checks:['Tutorial Dojo Set 4 complete (timed)'],
+     notes:['Score: /65 = %','Pattern: what type of question do I consistently miss?']},
+    {n:35, date:'Fri 13 Jun', color:'var(--teal)', bg:'var(--teal-bg)',
+     title:'Final Exam Simulation — Decision Day',
+     checks:['Full timed exam under exam conditions','Quiet room, no distractions, 90 min straight','Decision made: Book / Continue drilling'],
+     notes:['Final score: /65 = %','Decision: BOOK / NOT YET']},
+  ],
+};
+
+function buildWeekDays(weekKey, containerId){
+  const days = WEEK_DATA[weekKey];
+  const container = document.getElementById(containerId);
+  days.forEach(day=>{
+    const card = document.createElement('div');
+    card.className = 'day-card';
+    const header = document.createElement('div');
+    header.className = 'day-card-header';
+    const tag = document.createElement('span');
+    tag.className = 'day-tag';
+    tag.style.background = day.bg;
+    tag.style.color = day.color;
+    tag.textContent = `Day ${day.n} · ${day.date}`;
+    const right = document.createElement('div');
+    right.innerHTML = `<div class="day-num">${day.title}</div>`;
+    const chevron = document.createElement('span');
+    chevron.className = 'day-chevron';
+    chevron.textContent = '▾';
+    const body = document.createElement('div');
+    body.className = 'day-body';
+
+    // Checklist
+    const cl = makeChecklist(day.checks, `${weekKey}-d${day.n}-checks`);
+    body.appendChild(cl);
+
+    // Notes
+    day.notes.forEach((label, ni)=>{
+      const lbl = document.createElement('div');
+      lbl.className = 'field-label';
+      lbl.textContent = label;
+      const ta = document.createElement('textarea');
+      ta.placeholder = 'Write your answer here…';
+      const key = `${weekKey}-d${day.n}-note${ni}`;
+      const saved = S.get(key);
+      if(saved) ta.value = saved;
+      ta.addEventListener('input', ()=>S.set(key, ta.value));
+      body.appendChild(lbl);
+      body.appendChild(ta);
+    });
+
+    header.appendChild(tag);
+    header.appendChild(right);
+    header.appendChild(chevron);
+    header.onclick = ()=>{
+      body.classList.toggle('open');
+      chevron.classList.toggle('open');
+    };
+    card.appendChild(header);
+    card.appendChild(body);
+    container.appendChild(card);
+  });
+}
+
+// ── Service cards ─────────────────────────────────────────────────────────────
+const SERVICES = [
+  {name:'Amazon Bedrock', color:'var(--lavender)', bg:'var(--lavender-bg)',
+   fields:['One-line description','Use when (scenario)','Do NOT use when','Key capabilities (list)','Exam keyword']},
+  {name:'Amazon SageMaker', color:'var(--lavender)', bg:'var(--lavender-bg)',
+   fields:['One-line description','Use when (scenario)','Do NOT use when','Key sub-services','Exam keyword']},
+  {name:'Amazon Rekognition', color:'var(--sky)', bg:'var(--sky-bg)',
+   fields:['One-line description','Input type','Use when','Exam keyword','My example use case']},
+  {name:'Amazon Comprehend', color:'var(--sky)', bg:'var(--sky-bg)',
+   fields:['One-line description','Input type','5 capabilities','Exam keyword','Comprehend Medical — when?']},
+  {name:'Amazon Textract', color:'var(--sky)', bg:'var(--sky-bg)',
+   fields:['One-line description','Input type','Use when','Textract vs Rekognition — key diff','Exam keyword']},
+  {name:'Amazon Transcribe', color:'var(--mint)', bg:'var(--mint-bg)',
+   fields:['Direction (audio→text or text→audio)','Use when','Memory trick','Exam keyword']},
+  {name:'Amazon Polly', color:'var(--mint)', bg:'var(--mint-bg)',
+   fields:['Direction (text→audio or audio→text)','Use when','Memory trick','Exam keyword']},
+  {name:'Amazon Lex', color:'var(--mint)', bg:'var(--mint-bg)',
+   fields:['One-line description','Key concepts (intent, slot, utterance)','Lex vs Bedrock — key difference','Exam keyword']},
+  {name:'Amazon Translate', color:'var(--peach)', bg:'var(--peach-bg)',
+   fields:['One-line description','Use when','Translate vs Comprehend — difference','Exam keyword']},
+  {name:'Amazon Kendra', color:'var(--peach)', bg:'var(--peach-bg)',
+   fields:['One-line description','Use when','Kendra vs Bedrock Knowledge Bases','Exam keyword']},
+  {name:'Amazon Personalize', color:'var(--rose)', bg:'var(--rose-bg)',
+   fields:['One-line description','Use when','Input data needed','Exam keyword']},
+  {name:'Amazon Forecast', color:'var(--rose)', bg:'var(--rose-bg)',
+   fields:['One-line description','Use when','Forecast vs Lookout for Metrics','Exam keyword']},
+  {name:'Amazon Q Business', color:'var(--teal)', bg:'var(--teal-bg)',
+   fields:['One-line description','Use when','Q Business vs Q Developer','Exam keyword']},
+  {name:'Amazon Q Developer', color:'var(--teal)', bg:'var(--teal-bg)',
+   fields:['One-line description','Use when','Q Business vs Q Developer','Like which tool?']},
+];
+
+function buildServiceCards(){
+  const grid = document.getElementById('service-grid');
+  SERVICES.forEach((svc, si)=>{
+    const card = document.createElement('div');
+    card.className = 'service-card';
+    card.style.borderTop = `3px solid ${svc.color}`;
+    const h3 = document.createElement('h3');
+    h3.textContent = svc.name;
+    card.appendChild(h3);
+    svc.fields.forEach((f, fi)=>{
+      const wrap = document.createElement('div');
+      wrap.className = 'service-field';
+      const lbl = document.createElement('label');
+      lbl.textContent = f;
+      const ta = document.createElement('textarea');
+      ta.placeholder = 'Fill in…';
+      const key = `svc-${si}-f${fi}`;
+      const saved = S.get(key);
+      if(saved) ta.value = saved;
+      ta.addEventListener('input', ()=>S.set(key, ta.value));
+      wrap.appendChild(lbl);
+      wrap.appendChild(ta);
+      card.appendChild(wrap);
+    });
+    const confWrap = document.createElement('div');
+    confWrap.innerHTML = '<label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#aaa;display:block;margin-top:8px;">Confidence</label>';
+    const stars = document.createElement('div');
+    stars.className = 'conf-stars';
+    const savedConf = S.get(`svc-${si}-conf`) || 0;
+    for(let s=1;s<=5;s++){
+      const star = document.createElement('span');
+      star.className = 'star' + (s<=savedConf?' lit':'');
+      star.textContent = '★';
+      star.onclick = ()=>{
+        S.set(`svc-${si}-conf`, s);
+        stars.querySelectorAll('.star').forEach((st,i)=>st.classList.toggle('lit', i<s));
+      };
+      stars.appendChild(star);
+    }
+    confWrap.appendChild(stars);
+    card.appendChild(confWrap);
+    grid.appendChild(card);
+  });
+}
+
+// ── Glossary ──────────────────────────────────────────────────────────────────
+const DEFAULT_GLOSSARY = [
+  ['Artificial Intelligence','Simulation of human intelligence in computers — face recognition, language understanding, predictions','Foundations','5'],
+  ['Machine Learning','Subset of AI where algorithms learn patterns from data without explicit programming','Foundations','5'],
+  ['Deep Learning','Subset of ML using neural networks with many hidden layers','Foundations','5'],
+  ['Supervised Learning','ML training on labelled examples (input + correct output)','ML Types','5'],
+  ['Unsupervised Learning','ML training on unlabelled data — model finds patterns itself','ML Types','5'],
+  ['Foundation Model','Large pre-trained model used as base for many tasks (Claude, GPT-4, Titan)','Gen AI','5'],
+  ['Token','Basic unit an LLM processes (~3/4 of a word). LLM pricing in tokens','Gen AI','5'],
+  ['Context Window','Max tokens an LLM can process in one request (input + output combined)','Gen AI','5'],
+  ['Hallucination','LLM confidently generating false or fabricated information','Gen AI','5'],
+  ['RAG','Retrieval Augmented Generation — connects LLM to real documents for grounded answers','Gen AI','1'],
+  ['Embedding','Numerical vector representing semantic meaning — similar items → similar vectors','Gen AI','1'],
+  ['Fine-tuning','Further training a foundation model on domain-specific data','Gen AI','1'],
+  ['Precision','TP / (TP + FP) — of all predicted positives, how many were actually positive','Evaluation','5'],
+  ['Recall','TP / (TP + FN) — of all actual positives, how many did the model find','Evaluation','5'],
+  ['F1 Score','Harmonic mean of precision and recall — 2×(P×R)/(P+R)','Evaluation','5'],
+  ['Zero-shot prompting','Asking LLM for task with no examples','Prompting','5'],
+  ['Chain-of-thought','Ask LLM to reason step-by-step — "Think step by step"','Prompting','5'],
+  ['Overfitting','Model memorises training data and fails on new data','Evaluation','5'],
+  ['Fairness','Responsible AI pillar: equitable treatment of all groups','Responsible AI','1'],
+  ['Least privilege','Grant only minimum permissions required for a task','Security','5'],
+];
+
+function buildGlossary(){
+  const saved = S.get('glossary');
+  const rows = saved || DEFAULT_GLOSSARY;
+  const tbody = document.getElementById('glossary-tbody');
+  tbody.innerHTML = '';
+  rows.forEach((r,i)=>renderGlossaryRow(r,i));
+}
+function renderGlossaryRow([term,def,cat,conf], idx){
+  const tbody = document.getElementById('glossary-tbody');
+  const tr = document.createElement('tr');
+  tr.dataset.idx = idx;
+  const savedConf = parseInt(conf)||1;
+  let starsHtml = '';
+  for(let s=1;s<=5;s++) starsHtml += `<span class="star${s<=savedConf?' lit':''}" onclick="setGlossConf(${idx},${s})" style="cursor:pointer;font-size:14px;">${s<=savedConf?'★':'☆'}</span>`;
+  tr.innerHTML = `
+    <td><input type="text" value="${term}" placeholder="Term" oninput="saveGlossary()"></td>
+    <td><input type="text" value="${def}" placeholder="Definition" oninput="saveGlossary()" style="width:100%"></td>
+    <td><input type="text" value="${cat}" placeholder="Category" oninput="saveGlossary()" style="width:90px"></td>
+    <td><span class="conf-stars" style="flex-wrap:nowrap;">${starsHtml}</span></td>
+    <td><button class="remove-btn" onclick="removeGlossRow(${idx})">✕</button></td>`;
+  tbody.appendChild(tr);
+}
+function setGlossConf(idx,val){
+  const rows = getGlossaryRows();
+  if(rows[idx]) rows[idx][3] = String(val);
+  S.set('glossary', rows);
+  buildGlossary();
+}
+function getGlossaryRows(){
+  const tbody = document.getElementById('glossary-tbody');
+  const rows = [];
+  tbody.querySelectorAll('tr').forEach(tr=>{
+    const inputs = tr.querySelectorAll('input');
+    rows.push([inputs[0].value, inputs[1].value, inputs[2].value,
+      tr.querySelector('.conf-stars') ? (tr.querySelector('.lit:last-of-type')?.textContent === '★' ? '5' : '1') : '1']);
+  });
+  return rows;
+}
+function saveGlossary(){
+  const rows = getGlossaryRows();
+  S.set('glossary', rows);
+}
+function addGlossaryRow(){
+  const rows = S.get('glossary') || DEFAULT_GLOSSARY;
+  rows.push(['','','Foundations','1']);
+  S.set('glossary', rows);
+  buildGlossary();
+}
+function removeGlossRow(idx){
+  const rows = S.get('glossary') || DEFAULT_GLOSSARY;
+  rows.splice(idx,1);
+  S.set('glossary', rows);
+  buildGlossary();
+}
+
+// ── Projects ──────────────────────────────────────────────────────────────────
+const PROJECTS = [
+  {name:'Project 1 — Static Portfolio Website', repo:'aws-static-website',
+   week:'Week 1', services:'S3, CloudFront', color:'var(--lavender)',
+   checks:['S3 bucket created (globally unique name)','Static website hosting enabled','index.html uploaded','Bucket policy set for public read','S3 website URL loads in browser (http://)','CloudFront distribution created','Viewer protocol: Redirect HTTP to HTTPS','CloudFront URL works with HTTPS padlock','Architecture diagram exported as architecture.png','Pushed to GitHub: aws-static-website','README.md written with live URL and services table']},
+  {name:'Project 2 — Serverless Contact Form', repo:'aws-serverless-contact-form',
+   week:'Week 2', services:'Lambda, API Gateway, SES', color:'var(--mint)',
+   checks:['SES email verified','Lambda function created (Python 3.12)','Lambda IAM role has ses:SendEmail permission','Lambda tested → email arrives in Gmail ✓','API Gateway REST API created','POST /contact resource with Lambda integration','CORS enabled on /contact','API deployed to prod stage','index.html contact form with fetch() JS','End-to-end: form → submit → email arrives ✓','Pushed to GitHub: aws-serverless-contact-form']},
+  {name:'Project 3 — Custom VPC Architecture', repo:'aws-vpc-architecture',
+   week:'Week 3', services:'VPC, EC2, IGW, NAT Gateway', color:'var(--sky)',
+   checks:['VPC: CIDR 10.0.0.0/16','Public subnet: 10.0.1.0/24','Private subnet: 10.0.2.0/24','Internet Gateway created + attached to VPC','Public route table: 0.0.0.0/0 → IGW','Elastic IP allocated for NAT Gateway','NAT Gateway created in public subnet','Private route table: 0.0.0.0/0 → NAT GW','Bastion SG: SSH from My IP only','App SG: SSH from bastion SG only','Bastion EC2 in public subnet','App EC2 in private subnet','SSH chain tested ✓','NAT GW test: curl from private EC2 ✓','⚠️ NAT Gateway DELETED after testing (cost!)','Pushed to GitHub: aws-vpc-architecture']},
+  {name:'Project 4 — Auto-Scaling Web App', repo:'aws-auto-scaling-app',
+   week:'Week 4', services:'ALB, ASG, EC2, RDS, CloudWatch', color:'var(--rose)',
+   checks:['RDS MySQL (db.t3.micro) created','RDS SG: inbound 3306 from EC2 SG','Launch template: t2.micro + User Data','ALB created in public subnets','Target group: HTTP 80, health check /','ALB listener: HTTP 80 → target group','ASG created with launch template','Scaling policy: Target CPU 70%','Stress test: CPU spike → ASG adds instance ✓','CloudWatch dashboard created','Pushed to GitHub: aws-auto-scaling-app']},
+  {name:'Project 5 — Bedrock RAG Chatbot', repo:'aws-bedrock-rag-chatbot',
+   week:'Week 5', services:'Bedrock, Knowledge Bases, S3, Streamlit', color:'var(--teal)',
+   checks:['Bedrock model access: Claude 3 Haiku + Titan Embeddings V2','S3 bucket created for documents','3+ PDF/TXT documents uploaded','Bedrock Knowledge Base created','Embedding model: Titan Embeddings V2','OpenSearch Serverless vector store','Knowledge Base sync complete ✓','KB tested in console: answers from docs ✓','chatbot.py written (Streamlit + boto3)','env.example created','.gitignore: .env on line 1','requirements.txt: boto3, streamlit, python-dotenv','streamlit run chatbot.py → loads in browser ✓','End-to-end test ✓','Pushed to GitHub: aws-bedrock-rag-chatbot (no .env!)','README.md written with run instructions']},
+];
+
+function buildProjects(){
+  const container = document.getElementById('projects-content');
+  PROJECTS.forEach((proj, pi)=>{
+    const section = document.createElement('div');
+    section.className = 'section';
+    section.style.borderTop = `3px solid ${proj.color}`;
+    const h2 = document.createElement('h2');
+    h2.innerHTML = proj.name;
+    section.appendChild(h2);
+    const meta = document.createElement('p');
+    meta.style.cssText = 'font-size:12px;color:var(--mid);margin-bottom:14px;';
+    meta.textContent = `${proj.week} · Services: ${proj.services} · Repo: ${proj.repo}`;
+    section.appendChild(meta);
+    const cl = makeChecklist(proj.checks, `proj-${pi}-checks`);
+    section.appendChild(cl);
+    const lbl = document.createElement('div');
+    lbl.className = 'field-label';
+    lbl.textContent = 'What I learned building this';
+    const ta = document.createElement('textarea');
+    ta.placeholder = 'Write your honest reflection here…';
+    const saved = S.get(`proj-${pi}-notes`);
+    if(saved) ta.value = saved;
+    ta.addEventListener('input', ()=>S.set(`proj-${pi}-notes`, ta.value));
+    section.appendChild(lbl);
+    section.appendChild(ta);
+    container.appendChild(section);
+  });
+}
+
+// ── Weak Topics ───────────────────────────────────────────────────────────────
+function buildWeakTopics(){
+  const rows = S.get('weak') || [];
+  rows.forEach((r,i)=>renderWeakRow(r,i));
+}
+function renderWeakRow(data, idx){
+  const tbody = document.getElementById('weak-tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" value="${data.topic||''}" placeholder="Topic"></td>
+    <td><input type="text" value="${data.svc||''}" placeholder="Service"></td>
+    <td><input type="text" value="${data.src||''}" placeholder="TD Set 1…" style="width:70px"></td>
+    <td><input type="text" value="${data.date||''}" placeholder="dd/mm" style="width:55px"></td>
+    <td><input type="number" value="${data.count||''}" placeholder="1" style="width:40px" min="1"></td>
+    <td><select class="status-sel">
+      <option value="❌"${data.status==='❌'?' selected':''}>❌ New</option>
+      <option value="🔄"${data.status==='🔄'?' selected':''}>🔄 Studying</option>
+      <option value="⚠️"${data.status==='⚠️'?' selected':''}>⚠️ Fuzzy</option>
+      <option value="✅"${data.status==='✅'?' selected':''}>✅ Mastered</option>
+    </select></td>
+    <td><button class="remove-btn" onclick="removeWeakRow(this)">✕</button></td>`;
+  tr.querySelectorAll('input, select').forEach(el=>{
+    el.addEventListener('input', ()=>saveWeakTopics());
+    el.addEventListener('change', ()=>saveWeakTopics());
+  });
+  tbody.appendChild(tr);
+}
+function addWeakRow(){
+  renderWeakRow({}, document.getElementById('weak-tbody').children.length);
+  saveWeakTopics();
+}
+function removeWeakRow(btn){ btn.closest('tr').remove(); saveWeakTopics(); }
+function saveWeakTopics(){
+  const rows = [];
+  document.getElementById('weak-tbody').querySelectorAll('tr').forEach(tr=>{
+    const inputs = tr.querySelectorAll('input');
+    const sel = tr.querySelector('select');
+    rows.push({topic:inputs[0].value,svc:inputs[1].value,src:inputs[2].value,
+      date:inputs[3].value,count:inputs[4].value,status:sel.value});
+  });
+  S.set('weak', rows);
+}
+
+// ── Jobs ──────────────────────────────────────────────────────────────────────
+function buildJobs(){
+  const rows = S.get('jobs') || [];
+  rows.forEach((r,i)=>renderJobRow(r,i));
+  const linkedin = ['Headline: "AWS Certified Cloud Practitioner | AI Practitioner Candidate | Software Developer"',
+    'About section: mention CLF-C02 score (805), current study, project experience',
+    'Credly CLF-C02 badge linked to profile',
+    'GitHub URL added to Contact Info',
+    'All 5 project repos in Featured section',
+    'Skills: S3, CloudFront, Lambda, API Gateway, Bedrock, SageMaker, VPC, EC2, RDS, CloudWatch, Python',
+    'Project 1 post published (image + description + lessons)',
+    'Project 2 post published','Project 3 post published','Project 4 post published',
+    'Project 5 post published (RAG chatbot — best one)',
+    '500+ connections target','3+ recommendations requested'];
+  document.getElementById('linkedin-list').appendChild(makeChecklist(linkedin, 'linkedin-checks'));
+}
+function renderJobRow(data, idx){
+  const tbody = document.getElementById('jobs-tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" value="${data.co||''}" placeholder="Company"></td>
+    <td><input type="text" value="${data.role||''}" placeholder="Role"></td>
+    <td><input type="text" value="${data.date||''}" placeholder="dd/mm" style="width:55px"></td>
+    <td><input type="text" value="${data.platform||''}" placeholder="LinkedIn…" style="width:80px"></td>
+    <td><select class="status-sel">
+      ${['Submitted','Acknowledged','Screen','Phone','Interview 1','Interview 2','Offer','Rejected'].map(s=>`<option${data.status===s?' selected':''}>${s}</option>`).join('')}
+    </select></td>
+    <td><input type="text" value="${data.followup||''}" placeholder="dd/mm" style="width:55px"></td>
+    <td><button class="remove-btn" onclick="this.closest('tr').remove();saveJobs()">✕</button></td>`;
+  tr.querySelectorAll('input,select').forEach(el=>{
+    el.addEventListener('input', saveJobs);
+    el.addEventListener('change', saveJobs);
+  });
+  tbody.appendChild(tr);
+}
+function addJobRow(){
+  renderJobRow({}, document.getElementById('jobs-tbody').children.length);
+  saveJobs();
+}
+function saveJobs(){
+  const rows = [];
+  document.getElementById('jobs-tbody').querySelectorAll('tr').forEach(tr=>{
+    const inp = tr.querySelectorAll('input');
+    const sel = tr.querySelector('select');
+    rows.push({co:inp[0].value,role:inp[1].value,date:inp[2].value,
+      platform:inp[3].value,status:sel.value,followup:inp[4].value});
+  });
+  S.set('jobs', rows);
+}
+
+// ── Dashboard inputs auto-save ────────────────────────────────────────────────
+function initDashboardInputs(){
+  ['today-date','today-topic','today-maarek','today-project','today-goal'].forEach(id=>{
+    const el = document.getElementById(id);
+    autoSave(id, el);
+  });
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', ()=>{
+  buildStreak();
+  buildExamTable();
+  updateStats();
+  buildDomainRows();
+  buildServiceCards();
+  buildGlossary();
+  buildProjects();
+  buildWeakTopics();
+  buildJobs();
+  initDashboardInputs();
+  Object.entries(WEEK_DATA).forEach(([wk, days])=>{
+    buildWeekDays(wk, `${wk}-days`);
+  });
+});
+
+
+function initApp() {
+  buildStreak();
+  buildExamTable();
+  updateStats();
+  buildDomainRows();
+  buildServiceCards();
+  buildGlossary();
+  buildProjects();
+  buildWeakTopics();
+  buildJobs();
+  initDashboardInputs();
+  Object.keys(WEEK_DATA).forEach(wk => buildWeekDays(wk, `${wk}-days`));
+  // Show user email in sidebar
+  if (_currentUser) {
+    document.getElementById('user-email').textContent = _currentUser.getUsername();
+  }
+}
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    await getCurrentSession();
+    await loadAllFromDynamo();
+    hideAuthScreen();
+    initApp();
+  } catch(e) {
+    showAuthScreen('login');
+  }
+});
+</script>
+</body>
